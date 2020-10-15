@@ -59,7 +59,31 @@ end
 module Stepable    
     def moves
         res = []
+        diffs = self.move_diffs
+        
+        diffs.each do |diff|
+            old_pos = self.pos
+            new_pos = [ old_pos[0] + diff[0], old_pos[1] + diff[1] ]
 
+            if ok?(new_pos)
+                res << new_pos
+            end
+        end
+        res
+    end
+
+    def ok?(new_pos)
+        x, y = new_pos
+        next_pos = self.board[x][y]
+        if x.between?(0,7) && y.between?(0,7) 
+            if next_pos.symbol == self.symbol
+                return false
+            else
+                return true
+            end
+        else
+            return false
+        end
     end
 end
 
@@ -168,13 +192,87 @@ end
 
 class Pawn < Piece
     
+    # PAWN_DIRECTIONS = [[1,0], [-1,0]]
+
     def initialize(color, board, pos)
         super
     end
 
-    def move_dirs
-        
+    def symbol
+        @color
     end
+
+    def at_start_row?
+        if @pos[0] == 6 && symbol == :white
+            return true
+        elsif @pos[0] == 1 && symbol == :black
+            return true
+        else
+            return false
+        end
+    end
+
+    def forward_dir
+        if self.symbol == :black
+            return 1
+        else
+            return -1
+        end
+    end
+
+    def forward_steps
+        res = []
+        old_pos = self.pos
+
+        if at_start_row? && forward_dir == 1
+            dirs = [[1,0], [2,0]]
+            res += [old_pos[0] + ] 
+        elsif at_start_row? && forward_dir == -1
+            return [[-1,0], [-2,0]]
+        elsif forward_dir == 1
+            return [[1,0]]
+        else
+            return [[-1,0]]
+        end
+    end
+
+    def side_attacks
+        res = []
+        black = [[1,-1], [1,1]]
+        white = [[-1,1], [-1,-1]]
+
+        x, y = self.pos
+        next_pos = self.board
+
+        if forward_dir == 1
+            black.each do |dir|
+                new_pos = [x + dir[0], y + dir[1]]
+                i, j = new_pos
+                next_pos = self.board[i][j]
+                if next_pos.symbol != self.symbol && next_pos.symbol != :empty
+                    res << [i, j]
+                end
+            end
+        else
+            white.each do |dir|
+                new_pos = [x + dir[0], y + dir[1]]
+                i, j = new_pos
+                next_pos = self.board[i][j]
+                if next_pos.symbol != self.symbol && next_pos.symbol != :empty
+                    res << [i, j]
+                end
+            end
+        end
+        res
+    end
+
+    def move_dirs
+        res = []
+        res.concat(forward_steps)
+        res.concat(side_attacks)
+        res
+    end
+
 end
 
 # NullPiece 
@@ -182,5 +280,10 @@ end
 class NullPiece < Piece
     include Singleton
     def initialize
+        @color = :empty
+    end
+
+    def symbol
+        @color
     end
 end
