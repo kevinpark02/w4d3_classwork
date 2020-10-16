@@ -226,7 +226,7 @@ class Pawn < Piece
 
         if at_start_row? && forward_dir == 1
             dirs = [[1,0], [2,0]]
-            res += [old_pos[0] + ] 
+     
         elsif at_start_row? && forward_dir == -1
             return [[-1,0], [-2,0]]
         elsif forward_dir == 1
